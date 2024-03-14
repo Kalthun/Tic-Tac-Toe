@@ -91,7 +91,7 @@ impl State
             6 => { self.line_scores[3] += value; self.line_scores[5] += value; }
             7 => { self.line_scores[1] += value; self.line_scores[6] += value; self.line_scores[7] += value; }
             8 => { self.line_scores[2] += value; self.line_scores[6] += value; }
-            9 => { self.line_scores[3] += value; self.line_scores[7] += value; self.line_scores[0] += value; }
+            9 => { self.line_scores[3] += value; self.line_scores[6] += value; self.line_scores[0] += value; }
             _ => {}
         }
 
@@ -240,7 +240,7 @@ fn main() -> std::io::Result<()>
     }
 
     println!("=Alpha Beta Minimax Testing=\n");
-    let board1 = build_state("1".to_string());
+    let board1 = build_state("57198".to_string());
     let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
     println!("{}", case1.0);
     println!("{}", case1.1);
