@@ -246,7 +246,7 @@ fn main() -> std::io::Result<()>
     }
 
     println!("=Alpha Beta Minimax Testing=\n");
-    let board1 = build_state("1247536".to_string());
+    let board1 = build_state("7958".to_string());
     let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
     println!("{}", case1.0);
     println!("{}", case1.1);

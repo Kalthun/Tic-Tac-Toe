@@ -1,14 +1,13 @@
 ┌───┬───┬───┬───┬───┐
-│ 20│ 10│  0│  0│-10│
+│  0│ 10│  0│-10│ 20│
 ├───┼───┴───┴───┼───┤
-│TIC│ X │ O │ O │-10│
+│TIC│   │   │   │  0│
 ├───┤───┼───┼───├───┤
-│TAC│ X │ X │ X │ 30│
+│TAC│   │ X │   │ 10│
 ├───┤───┼───┼───├───┤
-│TOE│ O │   │   │-10│
+│TOE│ X │ O │ O │-10│
 └───┴───────────┴───┘
-To Move: O
-Moves Played: 7
-Last Move: 6
-Evaluation: 3
-GAME OVER
+To Move: X
+Moves Played: 4
+Last Move: 8
+Evaluation: 0
