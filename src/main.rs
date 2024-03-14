@@ -1,6 +1,6 @@
 use std::f32::{INFINITY, NEG_INFINITY};
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 
 #[derive(Clone, Copy, PartialEq)]
 enum Player
@@ -61,8 +61,8 @@ impl State
     {
         for score in self.line_scores
         {
-            if score ==  30 { return Player::X as i8}
-            if score == -30 { return Player::O as i8}
+            if score ==  30 { return Player::X as i8 - self.moves_played as i8}
+            if score == -30 { return Player::O as i8 + self.moves_played as i8}
         }
         Player::None as i8
     }
@@ -70,7 +70,7 @@ impl State
     pub fn is_open(&self, cell:u8) -> bool
     {
         let cell_index = cell - 1;
-        if self.board[cell_index as usize] == Player::None { true } else { false }
+        self.board[cell_index as usize] == Player::None
     }
 
     pub fn make_move(&mut self, cell:u8) // ! return a bool
@@ -115,12 +115,18 @@ impl std::fmt::Display for State
         let r7 = "├───┤───┼───┼───├───┤\n";
         let r8 = format!("│TOE│ {} │ {} │ {} │{:3}│\n", self.board[6], self.board[7], self.board[8], self.line_scores[6]);
         let r9 = "└───┴───────────┴───┘\n";
-        let i1 = format!("To Move: {} \n", self.to_move);
+        let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.moves_played);
         let i3 = format!("Last Move: {}\n", self.last_move);
         let i4 = format!("Evaluation: {}\n", self.evaluate_board());
 
-        write!(f, "{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, i1, i2, i3, i4)
+        // TODO: change how the end of game is displayed
+
+        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, i1, i2, i3, i4);
+
+        if self.is_terminal() { state_as_string = format!("{}{}", state_as_string, "GAME OVER\n") };
+
+        write!(f, "{}", state_as_string)
     }
 }
 
@@ -160,7 +166,7 @@ fn ab_minimax(board:State, mut alpha:i8, mut beta:i8) -> (i8, u8)
     {
         if board.is_open(cell)
         {
-            let mut next_board = board.clone();
+            let mut next_board = board;
             next_board.make_move(cell);
             let value = ab_minimax(next_board, alpha, beta);
 
@@ -240,10 +246,13 @@ fn main() -> std::io::Result<()>
     }
 
     println!("=Alpha Beta Minimax Testing=\n");
-    let board1 = build_state("57198".to_string());
+    let board1 = build_state("1247536".to_string());
     let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
     println!("{}", case1.0);
     println!("{}", case1.1);
+
+    let mut file = File::create("output.txt").unwrap();
+    let _ = file.write(board1.to_string().as_bytes());
 
     Ok(())
 
