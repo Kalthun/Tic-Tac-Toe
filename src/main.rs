@@ -118,7 +118,7 @@ impl std::fmt::Display for State
         let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.moves_played);
         let i3 = format!("Last Move: {}\n", self.last_move);
-        let i4 = format!("Evaluation: {}\n", self.evaluate_board());
+        let i4 = format!("Evaluation: {}\n\n", self.evaluate_board());
 
         // TODO: change how the end of game is displayed
 
@@ -190,6 +190,7 @@ fn ab_minimax(board:State, mut alpha:i8, mut beta:i8) -> (i8, u8)
     (best_value, best_move)
 }
 
+#[derive(PartialEq)]
 enum Error
 {
     None,
@@ -197,32 +198,95 @@ enum Error
     Input
 }
 
-// TODO: test_move
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+struct Node
+{
+    state:State,
+    parent:Box<Node>,
+    children:Vec<Box<Node>>,
+    wins:f32,
+    visits:f32,
+    to_visit:Vec<u8>
+}
+
+impl Node
+{
+    fn new(state:State, parent:&Node)
+    {
+
+    }
+
+    fn ucb1(&self, c:f32) -> f32
+    {
+        if self.visits == 0.0 { return INFINITY as f32 }
+        (self.wins / self.visits) + 2_f32.sqrt() * ((self.parent.visits.ln() / self.visits).sqrt())
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+fn test_cell(cell:u8) -> Error
+{
+    let cell_as_char = cell as char;
+    if !cell_as_char.is_numeric() || cell_as_char == '0' { return Error::Input }
+    Error::None
+}
 
 fn test_id(id:String) -> Error
 {
     let mut played = [false; 9];
-    for cell in id.chars()
+    for cell_as_char in id.chars()
     {
-        if !cell.is_numeric() || cell == '0'
-        {
-            return Error::Input;
-        }
+        let cell = cell_as_char.to_digit(10).unwrap() as u8;
 
-        let cell_index = cell.to_digit(10).unwrap() - 1;
-        if played[cell_index as usize]
-        {
-            return Error::Duplicate;
-        }
-        played[cell_index as usize] = true;
+        let cell_error = test_cell(cell);
+        if cell_error != Error::None { return cell_error }
+
+        if played[(cell - 1) as usize] { return Error::Duplicate; }
+        played[(cell - 1) as usize] = true;
     }
     Error::None
 }
 
 fn main() -> std::io::Result<()>
 {
-    let file = File::open("input.txt")?;
-    let reader = BufReader::new(file);
+    let input = File::open("input.txt")?;
+    let reader = BufReader::new(input);
+
+    let mut output = File::create("output.txt").unwrap();
 
     for line in reader.lines()
     {
@@ -257,10 +321,8 @@ fn main() -> std::io::Result<()>
     {
         full.make_move(ab_minimax(full, NEG_INFINITY as i8, INFINITY as i8).1);
         println!("{}", full);
+        let _ = output.write(full.to_string().as_bytes());
     }
-
-    // let mut file = File::create("output.txt").unwrap();
-    // let _ = file.write(board1.to_string().as_bytes());
 
     Ok(())
 
