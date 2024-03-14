@@ -246,13 +246,21 @@ fn main() -> std::io::Result<()>
     }
 
     println!("=Alpha Beta Minimax Testing=\n");
-    let board1 = build_state("7958".to_string());
-    let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
-    println!("{}", case1.0);
-    println!("{}", case1.1);
+    // let board1 = build_state("7958".to_string());
+    // let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
+    // println!("{}", case1.0);
+    // println!("{}", case1.1);
 
-    let mut file = File::create("output.txt").unwrap();
-    let _ = file.write(board1.to_string().as_bytes());
+    let mut full = build_state("".to_string());
+
+    while !full.is_terminal()
+    {
+        full.make_move(ab_minimax(full, NEG_INFINITY as i8, INFINITY as i8).1);
+        println!("{}", full);
+    }
+
+    // let mut file = File::create("output.txt").unwrap();
+    // let _ = file.write(board1.to_string().as_bytes());
 
     Ok(())
 
