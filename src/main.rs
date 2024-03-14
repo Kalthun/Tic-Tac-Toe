@@ -2,13 +2,6 @@ use std::f32::{INFINITY, NEG_INFINITY};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-enum Error
-{
-    None,
-    Duplicate,
-    Input
-}
-
 #[derive(Clone, Copy, PartialEq)]
 enum Player
 {
@@ -177,6 +170,7 @@ fn ab_minimax(board:State, mut alpha:i8, mut beta:i8) -> (i8, u8)
                 best_move = cell;
                 alpha = std::cmp::max(alpha, best_value);
             }
+
             if board.to_move == Player::O && value.0 < best_value
             {
                 best_value = value.0;
@@ -190,7 +184,16 @@ fn ab_minimax(board:State, mut alpha:i8, mut beta:i8) -> (i8, u8)
     (best_value, best_move)
 }
 
-fn test_input(id:String) -> Error
+enum Error
+{
+    None,
+    Duplicate,
+    Input
+}
+
+// TODO: test_move
+
+fn test_id(id:String) -> Error
 {
     let mut played = [false; 9];
     for cell in id.chars()
@@ -220,7 +223,7 @@ fn main() -> std::io::Result<()>
         let current_line = line.unwrap();
         println!("{}", current_line);
 
-        let error = test_input(current_line.clone());
+        let error = test_id(current_line.clone());
 
         match error
         {
@@ -237,7 +240,7 @@ fn main() -> std::io::Result<()>
     }
 
     println!("=Alpha Beta Minimax Testing=\n");
-    let board1 = build_state("1243567".to_string());
+    let board1 = build_state("1".to_string());
     let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
     println!("{}", case1.0);
     println!("{}", case1.1);
