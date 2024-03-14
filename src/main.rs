@@ -13,16 +13,17 @@ enum Error
 enum Player
 {
     None = 0,
-    X = 1, // first
-    O = -1 // second
+    X = 10, // first
+    O = -10 // second
 }
 
 impl Player
 {
     pub fn opposite(&self) -> Player
     {
-        if *self == Player::None { return Player::None; } // ? needed
-        return if *self == Player::X { Player::O } else { Player::X }
+        if *self == Player::X { return Player::O }
+        if *self == Player::O { return Player::X }
+        Player::None
     }
 }
 
@@ -39,95 +40,154 @@ impl std::fmt::Display for Player
     }
 }
 
-/*
-    0   1   2   6
----===========----
-    1 | 2 | 3   3
----===========----
-    4 | 5 | 6   4
----===========----
-    7 | 8 | 9   5
----===========----
-                7
-*/
-
-/*
-    0   1   2   6
----===========----
-    0 | 1 | 2   3
----===========----
-    3 | 4 | 5   4
----===========----
-    6 | 7 | 8   5
----===========----
-                7
-*/
-
 #[derive(Clone, Copy, PartialEq)]
-struct Board
+struct State
 {
     to_move:Player,
-    grid:[[Player; 3]; 3],
-    line_scores:[i8; 8],
+    moves_played:u8,
+    last_move:u8,
+    board:[Player;9],
+    line_scores:[i8;8],
 }
 
-impl Board
+impl State
 {
-    pub fn evaluate_board(&self) -> Player
+    pub fn is_terminal(&self) -> bool
+    {
+        if self.moves_played == 9 { return true; }
+
+        for score in self.line_scores
+        {
+            if score == 30 || score == -30 { return true; }
+        }
+
+        false
+    }
+
+    pub fn evaluate_board(&self) -> i8
     {
         for score in self.line_scores
         {
-            if score ==  3 { return Player::X };
-            if score == -3 { return Player::O };
+            if score ==  30 { return Player::X as i8}
+            if score == -30 { return Player::O as i8}
         }
-        Player::None
+        Player::None as i8
     }
 
-    pub fn make_move(&mut self, cell:i8)
+    pub fn is_open(&self, cell:u8) -> bool
     {
         let cell_index = cell - 1;
-        let row_index = cell_index / 3;
-        let col_index = cell_index % 3;
+        if self.board[cell_index as usize] == Player::None { true } else { false }
+    }
 
-        // !
-        if self.grid[row_index as usize][col_index as usize] != Player::None { return };
+    pub fn make_move(&mut self, cell:u8) // ! return a bool
+    {
+        // ! Already Full
+        if !self.is_open(cell) { return };
 
-        self.grid[row_index as usize][col_index as usize] = self.to_move;
+        self.board[(cell - 1) as usize] = self.to_move;
 
         let value = self.to_move as i8;
         match cell
         {
-            1 => { self.line_scores[0] += value; self.line_scores[3] += value; self.line_scores[7] += value; }
-            2 => { self.line_scores[1] += value; self.line_scores[3] += value; }
-            3 => { self.line_scores[2] += value; self.line_scores[3] += value; self.line_scores[6] += value; }
-            4 => { self.line_scores[0] += value; self.line_scores[4] += value; }
-            5 => { self.line_scores[1] += value; self.line_scores[4] += value; self.line_scores[6] += value; self.line_scores[7] += value }
-            6 => { self.line_scores[2] += value; self.line_scores[4] += value; }
-            7 => { self.line_scores[0] += value; self.line_scores[5] += value; self.line_scores[6] += value; }
-            8 => { self.line_scores[1] += value; self.line_scores[5] += value; }
-            9 => { self.line_scores[2] += value; self.line_scores[5] += value; self.line_scores[7] += value; }
+            1 => { self.line_scores[1] += value; self.line_scores[4] += value; self.line_scores[0] += value; }
+            2 => { self.line_scores[2] += value; self.line_scores[4] += value; }
+            3 => { self.line_scores[3] += value; self.line_scores[4] += value; self.line_scores[7] += value; }
+            4 => { self.line_scores[1] += value; self.line_scores[5] += value; }
+            5 => { self.line_scores[2] += value; self.line_scores[5] += value; self.line_scores[0] += value; self.line_scores[7] += value }
+            6 => { self.line_scores[3] += value; self.line_scores[5] += value; }
+            7 => { self.line_scores[1] += value; self.line_scores[6] += value; self.line_scores[7] += value; }
+            8 => { self.line_scores[2] += value; self.line_scores[6] += value; }
+            9 => { self.line_scores[3] += value; self.line_scores[7] += value; self.line_scores[0] += value; }
             _ => {}
         }
 
         self.to_move = self.to_move.opposite();
+        self.moves_played += 1;
+        self.last_move = cell;
     }
 }
 
-impl std::fmt::Display for Board
+impl std::fmt::Display for State
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
     {
         // let temp = "()".to_owned() + self.line_scores[0].to_string().as_str() + self.grid[0][0].to_string().as_str();
-        let r1 = format!(" {} │ {} │ {}\n", self.grid[0][0], self.grid[0][1], self.grid[0][2]);
-        let r2 = "───┼───┼───\n";
-        let r3 = format!(" {} │ {} │ {}\n", self.grid[1][0], self.grid[1][1], self.grid[1][2]);
-        let r4 = "───┼───┼───\n";
-        let r5 = format!(" {} │ {} │ {}\n", self.grid[2][0], self.grid[2][1], self.grid[2][2]);
-        let r6 = format!("To move: {}\n", self.to_move);
-        let temp = format!("{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6);
+        let r1 = "┌───┬───┬───┬───┬───┐\n";
+        let r2 = format!("│{:3}│{:3}│{:3}│{:3}│{:3}│\n", self.line_scores[0], self.line_scores[1], self.line_scores[2], self.line_scores[3], self.line_scores[7]);
+        let r3 = "├───┼───┴───┴───┼───┤\n";
+        let r4 = format!("│TIC│ {} │ {} │ {} │{:3}│\n", self.board[0], self.board[1], self.board[2], self.line_scores[4]);
+        let r5 = "├───┤───┼───┼───├───┤\n";
+        let r6 = format!("│TAC│ {} │ {} │ {} │{:3}│\n", self.board[3], self.board[4], self.board[5], self.line_scores[5]);
+        let r7 = "├───┤───┼───┼───├───┤\n";
+        let r8 = format!("│TOE│ {} │ {} │ {} │{:3}│\n", self.board[6], self.board[7], self.board[8], self.line_scores[6]);
+        let r9 = "└───┴───────────┴───┘\n";
+        let i1 = format!("To Move: {} \n", self.to_move);
+        let i2 = format!("Moves Played: {}\n", self.moves_played);
+        let i3 = format!("Last Move: {}\n", self.last_move);
+        let i4 = format!("Evaluation: {}\n", self.evaluate_board());
 
-        write!(f, "{}", temp)
+        write!(f, "{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, i1, i2, i3, i4)
     }
+}
+
+fn build_state(id: String) -> State
+{
+    let mut temp_board = State
+    {
+        to_move:Player::X,
+        moves_played:0,
+        last_move:0,
+        board:[Player::None;9],
+        line_scores:[0;8]
+    };
+
+    for cell in id.chars()
+    {
+        temp_board.make_move(cell.to_digit(10).unwrap() as u8);
+        if temp_board.is_terminal() { break; }
+    }
+
+    println!("{}", temp_board);
+
+    temp_board
+}
+
+fn ab_minimax(board:State, mut alpha:i8, mut beta:i8) -> (i8, u8)
+{
+    if board.is_terminal()
+    {
+        return (board.evaluate_board(), board.last_move);
+    }
+
+    let mut best_value = if board.to_move == Player::X { NEG_INFINITY as i8 } else { INFINITY as i8 };
+    let mut best_move:u8 = 0;
+
+    for cell in 1 .. 10
+    {
+        if board.is_open(cell)
+        {
+            let mut next_board = board.clone();
+            next_board.make_move(cell);
+            let value = ab_minimax(next_board, alpha, beta);
+
+            if board.to_move == Player::X && value.0 > best_value
+            {
+                best_value = value.0;
+                best_move = cell;
+                alpha = std::cmp::max(alpha, best_value);
+            }
+            if board.to_move == Player::O && value.0 < best_value
+            {
+                best_value = value.0;
+                best_move = cell;
+                beta = std::cmp::min(beta, best_value);
+            }
+        }
+        if beta <= alpha { break; }
+    }
+
+    (best_value, best_move)
 }
 
 fn test_input(id:String) -> Error
@@ -144,85 +204,10 @@ fn test_input(id:String) -> Error
         if played[cell_index as usize]
         {
             return Error::Duplicate;
-        };
+        }
         played[cell_index as usize] = true;
     }
     Error::None
-}
-
-fn ab_minimax(board:Board, depth:u8, mut alpha:i8, mut beta:i8, maximizing_player:bool) -> i8
-{
-    if depth == 9 || board.evaluate_board() != Player::None
-    {
-        return board.evaluate_board() as i8;
-    }
-
-    if maximizing_player
-    {
-        let mut max_value = NEG_INFINITY as i8;
-        for cell_index in 0 .. 9
-        {
-            let row_index = cell_index / 3;
-            let col_index = cell_index % 3;
-            if board.grid[row_index as usize][col_index as usize] == Player::None
-            {
-                let mut next_board = board.clone();
-                next_board.make_move(cell_index + 1);
-                println!("{}", next_board);
-                let value = ab_minimax(next_board, depth + 1, alpha, beta, false);
-                max_value = std::cmp::max(max_value, value);
-                alpha = std::cmp::max(alpha, max_value);
-                if beta <= alpha
-                {
-                    break;
-                }
-            }
-        }
-        return max_value;
-    }
-    else
-    {
-        let mut min_value = INFINITY as i8;
-        for cell_index in 0 .. 9
-        {
-            let row_index = cell_index / 3;
-            let col_index = cell_index % 3;
-            if board.grid[row_index as usize][col_index as usize] == Player::None
-            {
-                let mut next_board = board.clone();
-                next_board.make_move(cell_index + 1);
-                println!("{}", next_board);
-                let value = ab_minimax(next_board, depth + 1, alpha, beta, true);
-                min_value = std::cmp::min(min_value, value);
-                beta = std::cmp::min(beta, min_value);
-                if beta <= alpha
-                {
-                    break;
-                }
-            }
-        }
-        return min_value;
-    }
-}
-
-fn build_board(id: String) -> Board
-{
-    let mut temp_board = Board
-    {
-        to_move:Player::X,
-        grid:[[Player::None; 3]; 3],
-        line_scores:[0;8]
-    };
-
-    for cell in id.chars()
-    {
-        temp_board.make_move(cell.to_digit(10).unwrap() as i8);
-        if temp_board.evaluate_board() != Player::None { return temp_board; }
-    }
-
-    println!("{}", temp_board);
-
-    temp_board
 }
 
 fn main() -> std::io::Result<()>
@@ -240,9 +225,7 @@ fn main() -> std::io::Result<()>
         match error
         {
             Error::None => {
-                let temp_board = build_board(current_line);
-                println!("{}", temp_board);
-                println!("{:?}", temp_board.line_scores);
+                let _ = build_state(current_line);
             },
             Error::Input => {
                 println!("ERROR: Invalid Input");
@@ -253,7 +236,12 @@ fn main() -> std::io::Result<()>
         }
     }
 
-    println!("{}", ab_minimax(build_board("12".to_string()), 0, NEG_INFINITY as i8, INFINITY as i8, true));
+    println!("=Alpha Beta Minimax Testing=\n");
+    let board1 = build_state("1243567".to_string());
+    let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
+    println!("{}", case1.0);
+    println!("{}", case1.1);
 
     Ok(())
+
 }
