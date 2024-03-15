@@ -121,7 +121,6 @@ impl std::fmt::Display for State
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
     {
-        let id = format!("id: {}\n", self.id);
         let r1 = "┌───┬───┬───┬───┬───┐\n";
         let r2 = format!("│{:3}│{:3}│{:3}│{:3}│{:3}│\n", self.line_scores[0], self.line_scores[1], self.line_scores[2], self.line_scores[3], self.line_scores[7]);
         let r3 = "├───┼───┴───┴───┼───┤\n";
@@ -131,6 +130,7 @@ impl std::fmt::Display for State
         let r7 = "├───┤───┼───┼───├───┤\n";
         let r8 = format!("│TOE│ {} │ {} │ {} │{:3}│\n", self.board[6], self.board[7], self.board[8], self.line_scores[6]);
         let r9 = "└───┴───────────┴───┘\n";
+        let id = format!("id: {}\n", self.id);
         let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.id.len());
         let i3 = format!("Last Move: {}\n", self.id.chars().last().unwrap_or('0'));
@@ -138,7 +138,7 @@ impl std::fmt::Display for State
 
         // TODO: change how the end of game is displayed
 
-        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}", id, r1, r2, r3, r4, r5, r6, r7, r8, r9, i1, i2, i3, i4);
+        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, i1, i2, i3, i4);
 
         if self.is_terminal() { state_as_string = format!("{}{}", state_as_string, "GAME OVER\n") };
 
@@ -244,10 +244,10 @@ impl Node
 {
     fn new(state:State, parent:&Node)
     {
-
+        
     }
 
-    fn ucb1(&self, c:f32) -> f32
+    fn ucb1(&self) -> f32
     {
         if self.visits == 0.0 { return INFINITY as f32 }
         (self.wins / self.visits) + 2_f32.sqrt() * ((self.parent.visits.ln() / self.visits).sqrt())
