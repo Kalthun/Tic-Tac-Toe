@@ -244,7 +244,7 @@ impl Node
 {
     fn new(state:State, parent:&Node)
     {
-        
+
     }
 
     fn ucb1(&self) -> f32
@@ -326,10 +326,6 @@ fn main() -> std::io::Result<()>
     }
 
     println!("=Alpha Beta Minimax Testing=\n");
-    // let board1 = build_state("7958".to_string());
-    // let case1 = ab_minimax(board1, NEG_INFINITY as i8, INFINITY as i8);
-    // println!("{}", case1.0);
-    // println!("{}", case1.1);
 
     let mut full = build_state("".to_string());
 
