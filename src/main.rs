@@ -1,8 +1,10 @@
+extern crate rand;
+
 use std::f32::{INFINITY, NEG_INFINITY};
-use std::fmt::format;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 use std::collections::HashMap;
+use rand::Rng;
 
 #[derive(Clone, Copy, PartialEq)]
 enum Player
@@ -90,7 +92,10 @@ impl State
 
     pub fn get_random(&self) -> u8
     {
-        todo!()
+        let moves_list = self.get_moves();
+        let mut random = rand::thread_rng();
+        let roll = random.gen_range(0..=moves_list.len()) as u8;
+        roll
     }
 
     // TODO:
@@ -140,6 +145,11 @@ impl State
         }
 
         hash_code
+    }
+
+    pub fn equal(&self, state:State) -> bool
+    {
+        self.hash_state() == state.hash_state()
     }
 }
 
@@ -261,7 +271,6 @@ struct MCST
 
     // * Children Dictionary Node -> Vector of Nodes
     children:HashMap<State, Vec<State>>
-
 }
 
 
