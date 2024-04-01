@@ -1,6 +1,8 @@
 use std::f32::{INFINITY, NEG_INFINITY};
+use std::fmt::format;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
+use std::collections::HashMap;
 
 #[derive(Clone, Copy, PartialEq)]
 enum Player
@@ -86,6 +88,11 @@ impl State
         open_cells
     }
 
+    pub fn get_random(&self) -> u8
+    {
+        todo!()
+    }
+
     // TODO:
     pub fn make_move(&mut self, cell:u8) // ! return a bool
     {
@@ -115,6 +122,25 @@ impl State
         self.moves_played += 1;
         self.last_move = cell;
     }
+
+    pub fn hash_state(&self) -> u32
+    {
+        let mut hash_code:u32 = 0;
+
+        for cell_index in 0 .. 9
+        {
+            let cell_value = match self.board[cell_index]
+            {
+                Player::None => 0,
+                Player::X => 1,
+                Player::O => 2
+            };
+
+            hash_code += (3_u32.pow((cell_index + 1) as u32) * cell_value) as u32;
+        }
+
+        hash_code
+    }
 }
 
 impl std::fmt::Display for State
@@ -131,6 +157,7 @@ impl std::fmt::Display for State
         let r8 = format!("│TOE│ {} │ {} │ {} │{:3}│\n", self.board[6], self.board[7], self.board[8], self.line_scores[6]);
         let r9 = "└───┴───────────┴───┘\n";
         let id = format!("id: {}\n", self.id);
+        let ih = format!("hd: {}\n", self.hash_state());
         let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.id.len());
         let i3 = format!("Last Move: {}\n", self.id.chars().last().unwrap_or('0'));
@@ -138,7 +165,7 @@ impl std::fmt::Display for State
 
         // TODO: change how the end of game is displayed
 
-        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, i1, i2, i3, i4);
+        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, ih, i1, i2, i3, i4);
 
         if self.is_terminal() { state_as_string = format!("{}{}", state_as_string, "GAME OVER\n") };
 
@@ -226,10 +253,31 @@ enum Error
 
 struct MCST
 {
-    
+    // * Wins Dictionary Node -> Int
+    wins:HashMap<State, u16>,
+
+    // * Visits Dictionary Node -> Int
+    visits:HashMap<State, u32>,
+
+    // * Children Dictionary Node -> Vector of Nodes
+    children:HashMap<State, Vec<State>>
+
 }
 
 
+impl MCST
+{
+    // * Choose
+    // * Rollout
+    // * Select
+    // * Expand
+    // * Simulate
+    // * Backpropogate
+
+    // * Reward
+
+    // * UCB1
+}
 
 
 
