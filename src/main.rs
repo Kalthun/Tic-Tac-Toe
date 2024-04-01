@@ -224,35 +224,16 @@ enum Error
 
 
 
-
-
-
-
-
-
-struct Node
+struct MCST
 {
-    state:State,
-    parent:Box<Node>,
-    children:Vec<Box<Node>>,
-    wins:f32,
-    visits:f32,
-    to_visit:Vec<u8>
+    
 }
 
-impl Node
-{
-    fn new(state:State, parent:&Node)
-    {
 
-    }
 
-    fn ucb1(&self) -> f32
-    {
-        if self.visits == 0.0 { return INFINITY as f32 }
-        (self.wins / self.visits) + 2_f32.sqrt() * ((self.parent.visits.ln() / self.visits).sqrt())
-    }
-}
+
+
+
 
 
 
