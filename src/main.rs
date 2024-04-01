@@ -336,6 +336,10 @@ fn main() -> std::io::Result<()>
         let _ = output.write(full.to_string().as_bytes());
     }
 
+    // let temp = ab_minimax(&full, NEG_INFINITY as i8, INFINITY as i8);
+    // println!("{}", full);
+    // print!("{}\n{}", temp.0, temp.1);
+
     Ok(())
 
 }
