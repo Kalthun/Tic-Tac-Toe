@@ -6,8 +6,8 @@ use std::io::{BufRead, BufReader, Write};
 enum Player
 {
     None = 0,
-    X = 10, // first
-    O = -10 // second
+    X = 10, // goes first
+    O = -10 // goes second
 }
 
 impl Player
