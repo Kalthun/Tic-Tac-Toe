@@ -1,3 +1,10 @@
+/*
+    COMP-4475
+    Assignment 4
+    James McDonagh
+    1106211
+*/
+
 use std::f32::{INFINITY, NEG_INFINITY};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
@@ -141,7 +148,7 @@ impl std::fmt::Display for State
         let r8 = format!("│TOE│ {} │ {} │ {} │{:3}│\n", self.board[6], self.board[7], self.board[8], self.line_scores[6]);
         let r9 = "└───┴───────────┴───┘\n";
         let id = format!("id: {}\n", self.id);
-        let ih = format!("hd: {}\n", self.hash_state());
+        let hid = format!("hid: {}\n", self.hash_state());
         let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.id.len());
         let i3 = format!("Last Move: {}\n", self.id.chars().last().unwrap_or('0'));
@@ -149,7 +156,7 @@ impl std::fmt::Display for State
 
         // TODO: change how the end of game is displayed
 
-        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, ih, i1, i2, i3, i4);
+        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, hid, i1, i2, i3, i4);
 
         if self.is_terminal() { state_as_string = format!("{}{}", state_as_string, "GAME OVER\n") };
 
@@ -278,7 +285,7 @@ fn main() -> std::io::Result<()>
 
     println!("=Alpha Beta Minimax Testing=\n");
 
-    let mut full = build_state("".to_string());
+    let mut full = build_state("347".to_string());
 
     while !full.is_terminal()
     {
