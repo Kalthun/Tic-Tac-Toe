@@ -1,12 +1,8 @@
-extern crate rand;
-
 use std::f32::{INFINITY, NEG_INFINITY};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
-use std::collections::HashMap;
-use rand::Rng;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
 enum Player
 {
     None = 0,
@@ -37,7 +33,7 @@ impl std::fmt::Display for Player
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Hash, Eq, PartialEq)]
 struct State
 {
     id:String,
@@ -62,7 +58,7 @@ impl State
         false
     }
 
-    pub fn evaluate_board(&self) -> i8
+    pub fn evaluate_scores(&self) -> i8
     {
         for score in self.line_scores
         {
@@ -72,38 +68,20 @@ impl State
         Player::None as i8
     }
 
-    // TODO:
-    pub fn is_open(&self, cell:u8) -> bool
-    {
-        self.board[(cell - 1) as usize] == Player::None
-    }
-
     pub fn get_moves(&self) -> Vec<u8>
     {
         let mut open_cells:Vec<u8> = Vec::new();
 
         for cell in 1 .. 10
         {
-            if self.is_open(cell) { open_cells.push(cell); }
+            if self.board[(cell - 1) as usize] == Player::None { open_cells.push(cell); }
         }
 
         open_cells
     }
 
-    pub fn get_random(&self) -> u8
+    pub fn make_move(&mut self, cell:u8)
     {
-        let moves_list = self.get_moves();
-        let mut random = rand::thread_rng();
-        let roll = random.gen_range(0..=moves_list.len()) as u8;
-        roll
-    }
-
-    // TODO:
-    pub fn make_move(&mut self, cell:u8) // ! return a bool
-    {
-        // ! Already Full
-        if !self.is_open(cell) { return };
-
         self.id.push_str(cell.to_string().as_str());
 
         self.board[(cell - 1) as usize] = self.to_move;
@@ -147,10 +125,6 @@ impl State
         hash_code
     }
 
-    pub fn equal(&self, state:State) -> bool
-    {
-        self.hash_state() == state.hash_state()
-    }
 }
 
 impl std::fmt::Display for State
@@ -171,7 +145,7 @@ impl std::fmt::Display for State
         let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.id.len());
         let i3 = format!("Last Move: {}\n", self.id.chars().last().unwrap_or('0'));
-        let i4 = format!("Evaluation: {}\n\n", self.evaluate_board());
+        let i4 = format!("Evaluation: {}\n\n", self.evaluate_scores());
 
         // TODO: change how the end of game is displayed
 
@@ -183,7 +157,6 @@ impl std::fmt::Display for State
     }
 }
 
-// TODO:
 fn build_state(id: String) -> State
 {
     let mut temp_board = State
@@ -191,7 +164,7 @@ fn build_state(id: String) -> State
         id:String::with_capacity(9),
         board:[Player::None;9],
         line_scores:[0;8],
-        to_move:Player::X, // Don't need anymore
+        to_move:Player::X,
         moves_played:0, // Don't need anymore
         last_move:0 // Don't need anymore
     };
@@ -212,7 +185,7 @@ fn ab_minimax(board:&State, mut alpha:i8, mut beta:i8) -> (i8, u8)
 {
     if board.is_terminal()
     {
-        return (board.evaluate_board(), board.last_move);
+        return (board.evaluate_scores(), board.last_move);
     }
 
     let mut best_value = if board.to_move == Player::X { NEG_INFINITY as i8 } else { INFINITY as i8 };
@@ -250,66 +223,6 @@ enum Error
     Duplicate,
     Input
 }
-
-
-
-
-
-
-
-
-
-
-
-struct MCST
-{
-    // * Wins Dictionary Node -> Int
-    wins:HashMap<State, u16>,
-
-    // * Visits Dictionary Node -> Int
-    visits:HashMap<State, u32>,
-
-    // * Children Dictionary Node -> Vector of Nodes
-    children:HashMap<State, Vec<State>>
-}
-
-
-impl MCST
-{
-    // * Choose
-    // * Rollout
-    // * Select
-    // * Expand
-    // * Simulate
-    // * Backpropogate
-
-    // * Reward
-
-    // * UCB1
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // TODO:
 fn test_cell(cell:char) -> Error
@@ -373,10 +286,6 @@ fn main() -> std::io::Result<()>
         println!("{}", full);
         let _ = output.write(full.to_string().as_bytes());
     }
-
-    // let temp = ab_minimax(&full, NEG_INFINITY as i8, INFINITY as i8);
-    // println!("{}", full);
-    // print!("{}\n{}", temp.0, temp.1);
 
     Ok(())
 
