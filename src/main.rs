@@ -9,6 +9,7 @@ use std::f32::{INFINITY, NEG_INFINITY};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Write};
 
+// * Player Enum
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 enum Player
 {
@@ -17,6 +18,7 @@ enum Player
     O = -10 // goes second
 }
 
+// * Quick Swap
 impl Player
 {
     pub fn opposite(&self) -> Player
@@ -27,6 +29,7 @@ impl Player
     }
 }
 
+// * Nice Display
 impl std::fmt::Display for Player
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
@@ -40,6 +43,7 @@ impl std::fmt::Display for Player
     }
 }
 
+// * State struct
 #[derive(Clone, Hash, Eq, PartialEq)]
 struct State
 {
@@ -53,6 +57,7 @@ struct State
 
 impl State
 {
+    // * Checks if game is over
     pub fn is_terminal(&self) -> bool
     {
         if self.moves_played == 9 { return true; }
@@ -65,16 +70,19 @@ impl State
         false
     }
 
+    // * Checks to see if a player has won
     pub fn evaluate_scores(&self) -> i8
     {
         for score in self.line_scores
         {
+            // * We also factor in the number of moves player
             if score ==  30 { return Player::X as i8 - self.moves_played as i8}
             if score == -30 { return Player::O as i8 + self.moves_played as i8}
         }
         Player::None as i8
     }
 
+    // * get all available moves
     pub fn get_moves(&self) -> Vec<u8>
     {
         let mut open_cells:Vec<u8> = Vec::new();
@@ -87,6 +95,7 @@ impl State
         open_cells
     }
 
+    // * perform a move
     pub fn make_move(&mut self, cell:u8)
     {
         self.id.push_str(cell.to_string().as_str());
@@ -114,6 +123,7 @@ impl State
     }
 }
 
+// * Nice Display
 impl std::fmt::Display for State
 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result
@@ -148,6 +158,7 @@ impl std::fmt::Display for State
     }
 }
 
+// * Build a state with an id
 fn build_state(id: String) -> State
 {
     let mut temp_board = State
@@ -171,6 +182,7 @@ fn build_state(id: String) -> State
     temp_board
 }
 
+// * Alpha Beta Minimax
 fn ab_minimax(board:&State, mut alpha:i8, mut beta:i8) -> (i8, u8)
 {
     if board.is_terminal()
