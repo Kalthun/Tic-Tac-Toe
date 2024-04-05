@@ -112,26 +112,6 @@ impl State
         self.moves_played += 1;
         self.last_move = cell;
     }
-
-    pub fn hash_state(&self) -> u32
-    {
-        let mut hash_code:u32 = 0;
-
-        for cell_index in 0 .. 9
-        {
-            let cell_value = match self.board[cell_index]
-            {
-                Player::None => 0,
-                Player::X => 1,
-                Player::O => 2
-            };
-
-            hash_code += (3_u32.pow((cell_index + 1) as u32) * cell_value) as u32;
-        }
-
-        hash_code
-    }
-
 }
 
 impl std::fmt::Display for State
@@ -148,17 +128,21 @@ impl std::fmt::Display for State
         let r8 = format!("│TOE│ {} │ {} │ {} │{:3}│\n", self.board[6], self.board[7], self.board[8], self.line_scores[6]);
         let r9 = "└───┴───────────┴───┘\n";
         let id = format!("id: {}\n", self.id);
-        let hid = format!("hid: {}\n", self.hash_state());
         let i1 = format!("To Move: {}\n", self.to_move);
         let i2 = format!("Moves Played: {}\n", self.id.len());
         let i3 = format!("Last Move: {}\n", self.id.chars().last().unwrap_or('0'));
-        let i4 = format!("Evaluation: {}\n\n", self.evaluate_scores());
+        let i4 = format!("Evaluation: {}\n", self.evaluate_scores());
+        let i5 = format!("AB Score: {}\n\n", ab_minimax(self, NEG_INFINITY as i8, INFINITY as i8).0);
 
-        // TODO: change how the end of game is displayed
+        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, i1, i2, i3, i4, i5);
 
-        let mut state_as_string = format!("{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", r1, r2, r3, r4, r5, r6, r7, r8, r9, id, hid, i1, i2, i3, i4);
-
-        if self.is_terminal() { state_as_string = format!("{}{}", state_as_string, "GAME OVER\n") };
+        if self.is_terminal()
+        {
+            state_as_string = format!("{}{}", state_as_string, "GAME OVER\n");
+            if self.evaluate_scores() > 0 { state_as_string = format!("{}{}", state_as_string, "X Won!\n") };
+            if self.evaluate_scores() < 0 { state_as_string = format!("{}{}", state_as_string, "O Won!\n") };
+            if self.evaluate_scores() == 0 { state_as_string = format!("{}{}", state_as_string, "It's a Draw!\n") };
+        };
 
         write!(f, "{}", state_as_string)
     }
@@ -187,7 +171,6 @@ fn build_state(id: String) -> State
     temp_board
 }
 
-// TODO:
 fn ab_minimax(board:&State, mut alpha:i8, mut beta:i8) -> (i8, u8)
 {
     if board.is_terminal()
@@ -231,14 +214,12 @@ enum Error
     Input
 }
 
-// TODO:
 fn test_cell(cell:char) -> Error
 {
     if !cell.is_numeric() || cell == '0' { return Error::Input }
     Error::None
 }
 
-// TODO:
 fn test_id(id:String) -> Error
 {
     let mut played = [false; 9];
@@ -283,14 +264,26 @@ fn main() -> std::io::Result<()>
         }
     }
 
-    println!("=Alpha Beta Minimax Testing=\n");
-
-    let mut full = build_state("347".to_string());
+    let mut full = build_state("".to_string());
+    let mut input = String::new();
 
     while !full.is_terminal()
     {
-        full.make_move(ab_minimax(&full, NEG_INFINITY as i8, INFINITY as i8).1);
+        print!("Make a move: ");
+        std::io::stdout().flush().unwrap();
+        std::io::stdin().read_line(&mut input).unwrap();
+        let choice = input.chars().next().unwrap().to_digit(10).unwrap() as u8;
+        if choice != 0
+        {
+            full.make_move(choice);
+        }
+        else
+        {
+            full.make_move(ab_minimax(&full, NEG_INFINITY as i8, INFINITY as i8).1);
+        }
+
         println!("{}", full);
+        input.clear();
         let _ = output.write(full.to_string().as_bytes());
     }
 
