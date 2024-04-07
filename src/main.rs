@@ -167,8 +167,8 @@ fn build_state(id: String) -> State
         board:[Player::None;9],
         line_scores:[0;8],
         to_move:Player::X,
-        moves_played:0, // Don't need anymore
-        last_move:0 // Don't need anymore
+        moves_played:0,
+        last_move:0
     };
 
     for cell in id.chars()
@@ -229,7 +229,7 @@ enum Error
 fn test_cell(cell:char) -> Error
 {
     if !cell.is_numeric() || cell == '0' { return Error::Input }
-    Error::None
+;   Error::None
 }
 
 fn test_id(id:String) -> Error
@@ -253,7 +253,7 @@ fn main() -> std::io::Result<()>
     let input = File::open("input.txt")?;
     let reader = BufReader::new(input);
 
-    let mut output = File::create("output.txt").unwrap();
+    // let mut output = File::create("output.txt").unwrap();
 
     for line in reader.lines()
     {
@@ -296,7 +296,7 @@ fn main() -> std::io::Result<()>
 
         println!("{}", full);
         input.clear();
-        let _ = output.write(full.to_string().as_bytes());
+        // let _ = output.write(full.to_string().as_bytes());
     }
 
     Ok(())
